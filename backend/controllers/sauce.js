@@ -87,3 +87,7 @@ exports.getAllSauce = (req, res, next) => {
     }
   );
 };
+
+exports.likeSauce = (req, res, next) => {
+  
+}
