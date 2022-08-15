@@ -10,12 +10,12 @@
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/godhramn/godhramm_site.git"
+    "url": "git+https://github.com/godhramn/OCR_projet6.git"
   },
   "bugs": {
-    "url": "https://github.com/godhramn/godhramm_site/issues"
+    "url": "https://github.com/godhramn/OCR_projet6/issues"
   },
-  "homepage": "https://github.com/godhramn/godhramm_site#readme",
+  "homepage": "https://github.com/godhramn/OCR_projet6#readme",
   "description": "",
   "dependencies": {
     "bcrypt": "^5.0.1",

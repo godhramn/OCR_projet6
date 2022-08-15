@@ -28,7 +28,7 @@ app.use((req, res, next) => {
 });
 
 app.use("/api/auth", userRoutes);
-app.use("/api/sauce", saucesRoutes);
+app.use("/api/sauces", saucesRoutes);
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
