@@ -61,6 +61,10 @@ exports.getOneSauce = (req, res, next) => {
     _id: req.params.id
   }).then(
     (sauce) => {
+      const savedFilename  = sauce.imageUrl.split("/images/")[1];
+      if (fs.existsSync(`images/${savedFilename}`) != true) {
+        sauce.imageUrl = `${req.protocol}://${req.get("host")}/images/default.png`
+      }
       res.status(200).json(sauce);
     }
   ).catch(
@@ -75,6 +79,12 @@ exports.getOneSauce = (req, res, next) => {
 exports.getAllSauces = (req, res, next) => {
   Sauce.find().then(
     (sauces) => {
+      for (let i = 0; i < sauces.length; i++) {
+        const savedFilename  = sauces[i].imageUrl.split("/images/")[1];
+        if (fs.existsSync(`images/${savedFilename}`) != true) {
+          sauces[i].imageUrl = `${req.protocol}://${req.get("host")}/images/default.png`
+        }
+      } 
       res.status(200).json(sauces);
     }
   ).catch(
