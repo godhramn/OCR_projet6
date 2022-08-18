@@ -4,12 +4,13 @@ const fs = require("fs");
 
 exports.createSauce = (req, res, next) => {
   const sauceObject = JSON.parse(req.body.sauce);
+  /* Création d'une nouvelle sauce */
   const sauce = new Sauce({
     ...sauceObject,
     userId: req.auth.userId,
     imageUrl: `${req.protocol}://${req.get("host")}/images/${req.file.filename}`
   });
-
+  /* enregistrer la sauce dans la base de donnée */
   sauce.save()
   .then(() => { res.status(201).json({message: "Objet enregistré !"})})
   .catch(error => { res.status(400).json( { error })})
@@ -21,12 +22,16 @@ exports.modifySauce = (req, res, next) => {
     imageUrl: `${req.protocol}://${req.get("host")}/images/${req.file.filename}`
   } : { ...req.body };
 
+  /* Suppression de _userId pour éviter le changement de propriétaire */
   delete sauceObject._userId;
+
   Sauce.findOne({_id: req.params.id})
   .then((sauce) => {
     if (sauce.userId != req.auth.userId) {
       res.status(403).json({ message : "unauthorized request."});
-    } else {
+    }
+    /* Modifier la sauce dans la base de donnée */ 
+    else {
       Sauce.updateOne({ _id: req.params.id}, { ...sauceObject, _id: req.params.id})
       .then(() => res.status(200).json({message : "Objet modifié!"}))
       .catch(error => res.status(401).json({ error }));
@@ -44,7 +49,10 @@ exports.deleteSauce = (req, res, next) => {
       res.status(403).json({message: "unauthorized request."});
     } else {
       const filename = sauce.imageUrl.split("/images/")[1];
-      fs.unlink(`images/${filename}`, () => {
+      /* Supprimer le fichier image de l'api */
+      fs.unlink(`images/${filename}`, 
+      /* Supprimer la sauce de la base de donnée */
+      () => {
         Sauce.deleteOne({_id: req.params.id})
         .then(() => { res.status(200).json({message: "Objet supprimé !"})})
         .catch(error => res.status(401).json({ error }));
@@ -74,6 +82,7 @@ exports.getSauceById = (req, res, next) => {
 };
 
 exports.getSauces = (req, res, next) => {
+  /* Réutilise le token pour requérir l'array des sauces */
   headers = {"Authorization": `Bearer ${req.params.token}`}
   Sauce.find().then(
     (sauces) => {
@@ -94,6 +103,7 @@ exports.getSauces = (req, res, next) => {
 exports.likeSauce = (req, res, next) => {
   Sauce.findOne({ _id: req.params.id })
   .then((sauce) => {
+    /* Si l'utilisateur like la sauce */
     if (req.body.like == 1 && !sauce.usersLiked.includes(req.auth.userId)) {
       Sauce.updateOne(
         { _id: req.params.id },
@@ -103,7 +113,9 @@ exports.likeSauce = (req, res, next) => {
         res.status(200).json({ message: "liked" });
       })
       .catch((error) => res.status(400).json({ error }));
-    } else if (req.body.like == -1 && !sauce.usersDisliked.includes(req.auth.userId)) {
+    } 
+    /* Si l'utilisateur dislike la sauce */ 
+    else if (req.body.like == -1 && !sauce.usersDisliked.includes(req.auth.userId)) {
       Sauce.updateOne(
         { _id: req.params.id },
         { $push: { usersDisliked: req.auth.userId }, $inc: { dislikes: +1 }}
@@ -112,7 +124,9 @@ exports.likeSauce = (req, res, next) => {
         res.status(200).json({ message: "disliked" });
       })
       .catch((error) => res.status(400).json({ error }));
-    } else {
+    } 
+    /* Si l'utilisateur retire son like/dislike */
+    else {
       if (sauce.usersLiked.includes(req.auth.userId)) {
         Sauce.updateOne(
           { _id: req.params.id },
