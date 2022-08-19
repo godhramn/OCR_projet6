@@ -12,10 +12,6 @@ module.exports = (req, res, next) => {
   if (schema.validate(req.body.password)) {
     next();
   } else {
-    res.status(400).json({
-      error:
-        "The password is invalid : " +
-        schema.validate(req.body.password, { list: true }),
-    });
+    res.status(400).json({error: schema.validate(req.body.password, { list: true })});
   }
 };
