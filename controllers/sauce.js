@@ -82,8 +82,6 @@ exports.getSauceById = (req, res, next) => {
 };
 
 exports.getSauces = (req, res, next) => {
-  /* Réutilise le token pour requérir l'array des sauces */
-  headers = {"Authorization": `Bearer ${req.params.token}`}
   Sauce.find().then(
     (sauces) => {
       /* Mettre des images par défaut si absence d'images */
@@ -92,7 +90,7 @@ exports.getSauces = (req, res, next) => {
         if (fs.existsSync(`images/${savedFilename}`) != true) {
           sauces[i].imageUrl = `${req.protocol}://${req.get("host")}/images/default.png`
         }
-      } 
+      }
       res.status(200).json(sauces);
     }
   ).catch((error) => {

@@ -1,4 +1,5 @@
 const express = require("express");
+const helmet = require("helmet");
 const app = express();
 const mongoose = require("mongoose");
 const path = require("path");
@@ -29,6 +30,10 @@ app.use((req, res, next) => {
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(helmet({
+  crossOriginOpenerPolicy: false,
+  crossOriginResourcePolicy: false
+}));
 app.use("/api/auth", userRoutes);
 app.use("/api/sauces", sauceRoutes);
 
