@@ -32,6 +32,14 @@ exports.modifySauce = (req, res, next) => {
     }
     /* Modifier la sauce dans la base de donnée */ 
     else {
+      /* Supprimer l'ancienne image (sauf si image par défaut)*/
+      const filename = sauce.imageUrl.split("/images/")[1];
+      if (sauceObject.imageUrl != undefined && filename != "default.png") {
+        fs.unlink(`images/${filename}`, (err) => {
+          if (err) {console.log(err)}
+        })
+      }
+      /* Mettre à jour la sauce */
       Sauce.updateOne({ _id: req.params.id}, { ...sauceObject, _id: req.params.id})
       .then(() => res.status(200).json({message : "Objet modifié!"}))
       .catch(error => res.status(401).json({ error }));

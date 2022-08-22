@@ -8,7 +8,6 @@ require("dotenv").config();
 const sauceRoutes = require("./routes/sauce");
 const userRoutes = require("./routes/user");
 
-
 mongoose.connect(process.env.SECRET_KEY,
   { useNewUrlParser: true,
     useUnifiedTopology: true })

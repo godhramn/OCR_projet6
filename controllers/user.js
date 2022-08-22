@@ -5,7 +5,7 @@ const passwordValidator = require("password-validator");
 const User = require("../models/user");
 
 exports.signup = (req, res, next) => {
-  /* valider le choix de mot de passe */
+  /* Critères de validation de mot de passe */
   const schema = new passwordValidator();
 
   schema
@@ -13,7 +13,7 @@ exports.signup = (req, res, next) => {
   .min(8) /* minimum de 8 caractères */
   .is()
   .max(64); /* maximum de 64 caractères */
-  
+
   if (schema.validate(req.body.password)) {
     bcrypt.hash(req.body.password, 10) 
     .then((hash) => {
@@ -29,35 +29,35 @@ exports.signup = (req, res, next) => {
     })
     .catch((error) => res.status(500).json({ error }));
   } else {
-    res.status(400).json({error: schema.validate(req.body.password, { list: true })});
+    res.status(400).json({error: schema.validate("weakpassword", { list: true })});
   } 
 };
 
 exports.login = (req, res, next) => {
   User.findOne({ email: req.body.email })
-    .then((user) => {
-      if (!user) {
-        return res.status(401).json({ error: "Utilisateur inconnu" });
+  .then((user) => {
+    if (!user) {
+      return res.status(401).json({ error: "Utilisateur inconnu" });
+    }
+    /* vérification du mot de passe  */
+    bcrypt.compare(req.body.password, user.password)
+    .then((valid) => {
+      if (!valid) {
+        return res.status(401).json({ error: "Mot de passe incorrect" });
       }
-      /* vérification du mot de passe  */
-      bcrypt.compare(req.body.password, user.password)
-        .then((valid) => {
-          if (!valid) {
-            return res.status(401).json({ error: "Mot de passe incorrect" });
-          }
-          /* création d'un token */
-          res.status(200).json({
-            userId: user._id,
-            token: jwt.sign(
-              { userId: user._id },
-              "RANDOM_TOKEN_SECRET",
-              { expiresIn: "6h" }
-            )
-          });
-        })
-        .catch((error) => res.status(500).json({ error }));
+      /* création d'un token */
+      res.status(200).json({
+        userId: user._id,
+        token: jwt.sign(
+          { userId: user._id },
+          "RANDOM_TOKEN_SECRET",
+          { expiresIn: "4h" }
+        )
+      });
     })
     .catch((error) => res.status(500).json({ error }));
+  })
+  .catch((error) => res.status(500).json({ error }));
 };
 
 
