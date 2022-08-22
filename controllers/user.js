@@ -1,10 +1,21 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const passwordValidator = require("password-validator");
 
 const User = require("../models/user");
 
 exports.signup = (req, res, next) => {
-  bcrypt.hash(req.body.password, 10) 
+  /* valider le choix de mot de passe */
+  const schema = new passwordValidator();
+
+  schema
+  .is()
+  .min(8) /* minimum de 8 caractères */
+  .is()
+  .max(64); /* maximum de 64 caractères */
+  
+  if (schema.validate(req.body.password)) {
+    bcrypt.hash(req.body.password, 10) 
     .then((hash) => {
       /* Création d'un nouvel utilisateur */
       const user = new User({
@@ -17,6 +28,9 @@ exports.signup = (req, res, next) => {
         .catch((error) => res.status(400).json({ error }));
     })
     .catch((error) => res.status(500).json({ error }));
+  } else {
+    res.status(400).json({error: schema.validate(req.body.password, { list: true })});
+  } 
 };
 
 exports.login = (req, res, next) => {
