@@ -1,19 +1,25 @@
 const Sauce = require("../models/sauce.js");
-
 const fs = require("fs");
 
 exports.createSauce = (req, res, next) => {
   const sauceObject = JSON.parse(req.body.sauce);
-  /* Création d'une nouvelle sauce */
-  const sauce = new Sauce({
+  /* Suppression de _userId pour éviter le changement de propriétaire */
+  delete sauceObject._userId;
+  /* Si le fichier existe et est de type image */
+  if (req.file && req.file.mimetype.split("/")[0] === "image") {
+    /* Création d'une nouvelle sauce */
+    const sauce = new Sauce({
     ...sauceObject,
     userId: req.auth.userId,
     imageUrl: `${req.protocol}://${req.get("host")}/images/${req.file.filename}`
-  });
-  /* enregistrer la sauce dans la base de donnée */
-  sauce.save()
-  .then(() => { res.status(201).json({message: "Objet enregistré !"})})
-  .catch(error => { res.status(400).json( { error })})
+    });
+    /* enregistrer la sauce dans la base de donnée */
+    sauce.save()
+    .then(() => { res.status(201).json({message: "obect saved"})})
+    .catch(() => { res.status(400).json( { error: "unable to save object" })})
+  } else {
+    res.status(400).json({error : "image file not found"})
+  }
 };
 
 exports.modifySauce = (req, res, next) => {
@@ -41,12 +47,12 @@ exports.modifySauce = (req, res, next) => {
       }
       /* Mettre à jour la sauce */
       Sauce.updateOne({ _id: req.params.id}, { ...sauceObject, _id: req.params.id})
-      .then(() => res.status(200).json({message : "Objet modifié!"}))
-      .catch(error => res.status(401).json({ error }));
+      .then(() => res.status(200).json({message : "object modified"}))
+      .catch(error => res.status(401).json({ error: "unable to modify object" }));
     }
   })
   .catch((error) => {
-      res.status(400).json({ error });
+      res.status(400).json({ error : "unable to access object to modify"});
   });
 };
 
@@ -62,13 +68,13 @@ exports.deleteSauce = (req, res, next) => {
       /* Supprimer la sauce de la base de donnée */
       () => {
         Sauce.deleteOne({_id: req.params.id})
-        .then(() => { res.status(200).json({message: "Objet supprimé !"})})
-        .catch(error => res.status(401).json({ error }));
+        .then(() => { res.status(200).json({message: "object deleted"})})
+        .catch(error => res.status(401).json({ error: "unable to delete object" }));
       });
     }
   })
   .catch( error => {
-    res.status(500).json({ error });
+    res.status(500).json({ error: "unable to access object to delete" });
   });
 };
 
@@ -85,7 +91,7 @@ exports.getSauceById = (req, res, next) => {
       res.status(200).json(sauce);
     }
   ).catch((error) => {
-    res.status(400).json({ error });
+    res.status(400).json({ error: "unable to retrieve object" });
   });
 };
 
@@ -102,7 +108,7 @@ exports.getSauces = (req, res, next) => {
       res.status(200).json(sauces);
     }
   ).catch((error) => {
-    res.status(400).json({ error });
+    res.status(400).json({ error: "unable to retrieve objects" });
   });
 };
 
